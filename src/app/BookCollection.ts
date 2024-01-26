@@ -2,9 +2,17 @@ type Book = {
     id: number;
     title: string;
     author: string;
+    avaible: boolean;
+    rate: number
 }
-
-export class BookCollection {
+interface IBookCollection {
+    addBook(book: Book): void;
+    removeBookByTitle(title: string): void;
+    findBookByTitle(title: string): Book | undefined;
+    findBookByAuthor(author: string): Book | undefined;
+    getAllBooks(): Book[];
+}
+export class BookCollection implements IBookCollection {
     private books: Book[] = [];
 
     addBook(book: Book): void {
@@ -19,7 +27,7 @@ export class BookCollection {
     removeBookByTitle(title: string): void {
         this.books = this.books.filter((book) => book.title !== title);
     }
-    findBookByTitle(title: string): Book| undefined  {
+    findBookByTitle(title: string): Book | undefined {
         const result = this.books.find((u) => u.title === title)
         return result;
     }
@@ -28,5 +36,34 @@ export class BookCollection {
     }
     getAllBooks(): Book[] {
         return this.books;
+    }
+    borrowBookByTitle(title: string): Book {
+        let bookBorrow = this.books.find((u) => u.title === title)
+        if (!bookBorrow) {
+            throw new Error("book doesn't exist")
+        }
+        else if (bookBorrow.avaible===false) {
+            throw new Error("book already borrow")
+        }
+        bookBorrow.avaible = false
+        return bookBorrow
+    }
+    returnBookByTitle(title:string): Book{
+        let bookReturn = this.findBookByTitle(title)
+        if (!bookReturn) {
+            throw new Error("book doesn't exist")
+        }
+        if(bookReturn.avaible===true){
+            throw new Error("book already return")
+        }
+        bookReturn.avaible = true
+        return bookReturn
+    }
+    getBookByBestRate(): Book[] | undefined {
+        const highestRating = Math.max(...this.books.map(book => book.rate?? 0));
+
+        if (highestRating === 0) return undefined;
+
+        return this.books.filter(book => book.rate === highestRating);
     }
 }
